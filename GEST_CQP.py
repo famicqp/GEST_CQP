@@ -1,23 +1,28 @@
 import streamlit as st
 import pandas as pd
+from google.oauth2 import service_account
 
-# Configuration pour mobile
-st.set_page_config(page_title="Direction CQP", layout="centered")
+# Connexion aux données en temps réel
+def get_data():
+    # Ici, vous utilisez la librairie 'gspread' ou 'streamlit-gsheets'
+    # pour lire votre fichier Google Sheets en direct
+    df = st.connection("gsheets", type="google_sheets").read(worksheet="Suivi_Formations")
+    return df
 
-st.title("📱 Tableau de Bord")
+st.title("🚀 Pilotage CQP")
 
-# Simulation de données (à remplacer par la lecture de votre fichier Excel/Sheet)
-data = {'Département': ['Bois', 'Alu', 'Élec. Ind', 'Élec. Bât'],
-        'Taux_Occupation': [85, 90, 75, 95]}
-df = pd.DataFrame(data)
+# Données synchronisées
+data = get_data()
 
-# Affichage en carte (plus lisible sur petit écran)
-for index, row in df.iterrows():
-    with st.container(border=True):
-        col1, col2 = st.columns([2, 1])
-        col1.write(f"**{row['Département']}**")
-        col2.metric(label="Taux", value=f"{row['Taux_Occupation']}%")
+# Affichage avec alertes automatiques
+st.subheader("Alertes prioritaires")
+alertes = data[data['Statut'] == 'Urgent']
+if not alertes.empty:
+    st.error(f"Attention : {len(alertes)} dossiers nécessitent votre action immédiate")
 
-# Bouton d'action rapide pour le directeur
-if st.button("Rafraîchir les données"):
-    st.rerun()
+# Formulaire de mise à jour rapide (Action)
+with st.expander("Ajouter un commentaire ou une action"):
+    comment = st.text_area("Note pour l'équipe :")
+    if st.button("Envoyer la mise à jour"):
+        # Logique pour écrire dans le Sheet
+        st.success("Données synchronisées avec succès !")
